@@ -31,38 +31,44 @@ class LorisAPIBIDSExtractor(object):
         self.repo    = annex.repo
 
     def __call__(self, data):
+        bids_root_dir = 'BIDS_dataset'
         jsdata = json.loads(data["response"])
 
         for key in ['DatasetDescription', 'README', 'BidsValidatorConfig']:
             if key in jsdata.keys():
+                print('\n')
+                print('apibase:' + self.apibase)
+                print(join(self.apibase, jsdata[key]['Link']))
                 yield updated(data, {
                     'url' : join(self.apibase, jsdata[key]['Link']),
-                    'path': ''
+                    'filename': basename(jsdata[key]['Link']),
+                    'path': bids_root_dir
                 })
 
         if 'Participants' in jsdata.keys():
+            print('\n')
+            print(self.apibase + jsdata['Participants']['TsvLink'])
+            print(self.apibase + jsdata['Participants']['JsonLink'])
             yield updated(data, {
-                'url' : join(self.apibase, jsdata['Participants']['TsvLink']),
-                'path': ''
+                'url' : self.apibase + jsdata['Participants']['TsvLink'],
+                'path': bids_root_dir
             })
             yield updated(data, {
-                'url' : join(self.apibase, jsdata['Participants']['JsonLink']),
-                'path': ''
+                'url' : self.apibase + jsdata['Participants']['JsonLink'],
+                'path': bids_root_dir
             })
 
         if 'SessionFiles' in jsdata.keys():
             for file_dict in jsdata['SessionFiles']:
                 candid   = file_dict['Candidate']
                 visit    = file_dict['Visit']
-                filename = basename(file_dict["TsvLink"])
-                self.meta[filename] = file_dict
                 yield updated(data, {
                     'url' : join(self.apibase, file_dict['TsvLink']),
                     'path': join(candid, visit)
                 })
                 yield updated(data, {
                     'url' : join(self.apibase, file_dict['JsonLink']),
-                    'path': join(candid, visit)
+                    'path': join(bids_root_dir, candid, visit)
                 })
 
         if 'Images' in jsdata.keys():
@@ -74,13 +80,13 @@ class LorisAPIBIDSExtractor(object):
                 self.meta[filename] = file_dict
                 yield updated(data, {
                     "url" : self.apibase + file_dict["NiftiLink"],
-                    "path": join(candid, visit, subfolder)
+                    "path": join(bids_root_dir, candid, visit, subfolder)
                 })
                 for associated_file in ['JsonLink', 'BvalLink', 'BvecLink', 'EventLink']:
                     if associated_file in file_dict:
                         yield updated(data, {
-                            "url" : self.apibase + file_dict[associated_file],
-                            "path": join(candid, visit, subfolder)
+                            "url" : join(self.apibase, file_dict[associated_file]),
+                            "path": join(bids_root_dir, candid, visit, subfolder)
                         })
         return
 
