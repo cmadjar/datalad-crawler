@@ -36,19 +36,13 @@ class LorisAPIBIDSExtractor(object):
 
         for key in ['DatasetDescription', 'README', 'BidsValidatorConfig']:
             if key in jsdata.keys():
-                print('\n')
-                print('apibase:' + self.apibase)
-                print(join(self.apibase, jsdata[key]['Link']))
                 yield updated(data, {
-                    'url' : join(self.apibase, jsdata[key]['Link']),
+                    'url' : self.apibase + jsdata[key]['Link'],
                     'filename': basename(jsdata[key]['Link']),
                     'path': bids_root_dir
                 })
 
         if 'Participants' in jsdata.keys():
-            print('\n')
-            print(self.apibase + jsdata['Participants']['TsvLink'])
-            print(self.apibase + jsdata['Participants']['JsonLink'])
             yield updated(data, {
                 'url' : self.apibase + jsdata['Participants']['TsvLink'],
                 'path': bids_root_dir
@@ -63,11 +57,11 @@ class LorisAPIBIDSExtractor(object):
                 candid   = file_dict['Candidate']
                 visit    = file_dict['Visit']
                 yield updated(data, {
-                    'url' : join(self.apibase, file_dict['TsvLink']),
+                    'url' : self.apibase + file_dict['TsvLink'],
                     'path': join(candid, visit)
                 })
                 yield updated(data, {
-                    'url' : join(self.apibase, file_dict['JsonLink']),
+                    'url' : self.apibase + file_dict['JsonLink'],
                     'path': join(bids_root_dir, candid, visit)
                 })
 
@@ -85,7 +79,7 @@ class LorisAPIBIDSExtractor(object):
                 for associated_file in ['JsonLink', 'BvalLink', 'BvecLink', 'EventLink']:
                     if associated_file in file_dict:
                         yield updated(data, {
-                            "url" : join(self.apibase, file_dict[associated_file]),
+                            "url" : self.apibase + file_dict[associated_file],
                             "path": join(bids_root_dir, candid, visit, subfolder)
                         })
         return
