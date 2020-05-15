@@ -38,7 +38,6 @@ class LorisAPIBIDSExtractor(object):
             if key in jsdata.keys():
                 yield updated(data, {
                     'url' : self.apibase + jsdata[key]['Link'],
-                    'filename': basename(jsdata[key]['Link']),
                     'path': bids_root_dir
                 })
 
@@ -58,7 +57,7 @@ class LorisAPIBIDSExtractor(object):
                 visit    = file_dict['Visit']
                 yield updated(data, {
                     'url' : self.apibase + file_dict['TsvLink'],
-                    'path': join(candid, visit)
+                    'path': join(bids_root_dir, candid, visit)
                 })
                 yield updated(data, {
                     'url' : self.apibase + file_dict['JsonLink'],
