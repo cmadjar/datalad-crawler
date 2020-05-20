@@ -53,8 +53,8 @@ class LorisAPIBIDSExtractor(object):
 
         if 'SessionFiles' in jsdata.keys():
             for file_dict in jsdata['SessionFiles']:
-                candid   = file_dict['Candidate']
-                visit    = file_dict['Visit']
+                candid   = 'sub-' + file_dict['Candidate']
+                visit    = 'ses-' + file_dict['Visit']
                 yield updated(data, {
                     'url' : self.apibase + file_dict['TsvLink'],
                     'path': join(bids_root_dir, candid, visit)
@@ -66,8 +66,8 @@ class LorisAPIBIDSExtractor(object):
 
         if 'Images' in jsdata.keys():
             for file_dict in jsdata["Images"]:
-                candid    = file_dict["Candidate"]
-                visit     = file_dict["Visit"]
+                candid    = 'sub-' + file_dict["Candidate"]
+                visit     = 'ses-' + file_dict["Visit"]
                 subfolder = file_dict['Subfolder']
                 filename  = basename(file_dict["NiftiLink"])
                 self.meta[filename] = file_dict
