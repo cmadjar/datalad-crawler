@@ -23,7 +23,7 @@ from logging import getLogger
 lgr = getLogger("datalad.crawler.pipelines.kaggle")
 
 
-class LorisAPIExtractor(object):
+class LorisAPIDataReleaseExtractor(object):
 
     def __init__(self, apibase=None, annex=None):
         self.apibase = apibase
@@ -32,28 +32,25 @@ class LorisAPIExtractor(object):
 
     def __call__(self, data):
         jsdata = json.loads(data["response"])
-        for candidate in jsdata["Images"]:
-            candid = candidate["Candidate"]
-            visit = candidate["Visit"]
-            filename = basename(candidate["Link"])
-            self.meta[filename] = candidate
+
+        # determine the latest version of data release
+        version = None
+        files   = []
+        for release in jsdata:
+            current_version = release['Data_Release_Version']
+            if not version:
+                version = current_version
+                files   = release['Files']
+            else:
+                version = current_version if current_version > version else version
+                files   = release['Files']
+
+        for file_dict in files:
+            file_name = file_dict['File']
+            file_link = file_dict['Link']
             yield updated(data, {
-                "url" : join(self.apibase, 'candidates', candid),
-                "filename": "candidate.json",
-                "path": candid
-            })
-            yield updated(data, {
-                "url" : join(self.apibase, 'candidates', candid, visit),
-                "filename": "visit.json",
-                "path": join(candid, visit)
-            })
-            yield updated(data, { 
-                "url" : join(self.apibase, 'candidates', candid, visit, 'images'),
-                "path": join(candid, visit, 'images')
-            })
-            yield updated(data, { 
-                "url" : self.apibase + candidate["Link"],
-                "path": join(candid, visit, 'images')
+                "url"     : join(self.apibase, file_link),
+                "filename": file_name
             })
         return
 
@@ -94,7 +91,7 @@ def pipeline(url=None, apibase=None):
                     " and exclude=.datalad/crawl/crawl.cfg"
                 ]
     )
-    lorisapi = LorisAPIExtractor(apibase, annex)
+    lorisapi = LorisAPIDataReleaseExtractor(apibase, annex)
 
     return [
         # Get the list of images
